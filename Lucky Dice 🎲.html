@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gramzo Dice Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f0f0;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        .hidden { display: none; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2, p { font-size: 2em; margin: 20px 0; }
+        button {
+            padding: 15px 25px;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.2s ease-in-out;
+        }
+        button:hover { transform: scale(1.1); }
+        .bet-options, .dice-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .bet-btn, .dice-btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #ff6347;
+            border: none;
+            border-radius: 10px;
+            color: white;
+        }
+        .bet-btn:hover, .dice-btn:hover { background-color: #ff4500; }
+        #diceResult { font-size: 3em; font-weight: bold; color: #ff6347; }
+        .result-screen { display: none; }
+        .animate-roll { animation: roll 2s ease-in-out; }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .win { color: #32cd32; font-size: 2em; font-weight: bold; animation: glow 1s infinite alternate; }
+        .lose { color: #ff0000; font-size: 2em; font-weight: bold; animation: shake 0.5s ease-in-out infinite; }
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #32cd32, 0 0 20px #32cd32, 0 0 30px #32cd32; }
+            100% { text-shadow: 0 0 20px #32cd32, 0 0 40px #32cd32, 0 0 60px #32cd32; }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>🎲 به بازی تاس Gramzo خوش آمدید! 🎲</h1>
+            <button id="startGame">شروع بازی</button>
+        </div>
+
+        <div class="bet-screen hidden" id="betScreen">
+            <h2>مقدار شرط را انتخاب کنید:</h2>
+            <div class="bet-options">
+                <button class="bet-btn" data-value="10">10 Gramzo</button>
+                <button class="bet-btn" data-value="20">20 Gramzo</button>
+                <button class="bet-btn" data-value="50">50 Gramzo</button>
+                <button class="bet-btn" data-value="100">100 Gramzo</button>
+                <button class="bet-btn" data-value="500">500 Gramzo</button>
+                <button class="bet-btn" data-value="1000">1000 Gramzo</button>
+                <button class="bet-btn" data-value="2000">2000 Gramzo</button>
+            </div>
+        </div>
+
+        <div class="dice-screen hidden" id="diceScreen">
+            <h2>ضریب تاس را انتخاب کنید:</h2>
+            <div class="dice-options">
+                <button class="dice-btn" data-value="even">زوج</button>
+                <button class="dice-btn" data-value="odd">فرد</button>
+                <button class="dice-btn" data-value="1">1</button>
+                <button class="dice-btn" data-value="2">2</button>
+                <button class="dice-btn" data-value="3">3</button>
+                <button class="dice-btn" data-value="4">4</button>
+                <button class="dice-btn" data-value="5">5</button>
+                <button class="dice-btn" data-value="6">6</button>
+                <button class="dice-btn" data-value="123">عددهای 1، 2، 3</button>
+                <button class="dice-btn" data-value="456">عددهای 4، 5، 6</button>
+            </div>
+            <button id="rollDice">🎲 انداختن تاس 🎲</button>
+        </div>
+
+        <div class="result-screen hidden" id="resultScreen">
+            <h2>نتیجه بازی</h2>
+            <p id="diceResult">🎲 تاس ریخته شد: <span id="rolledNumber"></span></p>
+            <p id="gameOutcome"></p>
+            <button id="playAgain">بازی مجدد</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("startGame").addEventListener("click", function() {
+            document.getElementById("welcomeScreen").classList.add("hidden");
+            document.getElementById("betScreen").classList.remove("hidden");
+        });
+
+        let selectedBet = 0;
+        let selectedChoice = "";
+
+        document.querySelectorAll(".bet-btn").forEach(button => {
+            button.addEventListener("click", function() {
+                selectedBet = parseInt(this.dataset.value);
+                document.getElementById("betScreen").classList.add("hidden");
+                document.getElementById("diceScreen").classList.remove("hidden");
+            });
+        });
+
+        document.querySelectorAll(".dice-btn").forEach(button => {
+            button.addEventListener("click", function() {
+                selectedChoice = this.dataset.value;
+            });
+        });
+
+        document.getElementById("rollDice").addEventListener("click", function() {
+            let rolledNumber = Math.floor(Math.random() * 6) + 1;
+            document.getElementById("rolledNumber").innerText = rolledNumber;
+            document.getElementById("diceResult").classList.add("animate-roll");
+            let win = false;
+
+            if ((selectedChoice === "even" && rolledNumber % 2 === 0) ||
+                (selectedChoice === "odd" && rolledNumber % 2 !== 0) ||
+                (selectedChoice === rolledNumber.toString()) ||
+                (selectedChoice === "123" && [1, 2, 3].includes(rolledNumber)) ||
+                (selectedChoice === "456" && [4, 5, 6].includes(rolledNumber))) {
+                win = true;
+            }
+
+            if (win) {
+                document.getElementById("gameOutcome").innerText = "🎉 شما برنده شدید! 🎉";
+                document.getElementById("gameOutcome").classList.add("win");
+            } else {
+                document.getElementById("gameOutcome").innerText = "❌ شما باختید! ❌";
+                document.getElementById("gameOutcome").classList.add("lose");
+            }
+
+            document.getElementById("diceScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.remove("hidden");
+        });
+
+        document.getElementById("playAgain").addEventListener("click", function() {
+            document.getElementById("resultScreen").classList.add("hidden");
+            document.getElementById("betScreen").classList.remove("hidden");
+        });
+    </script>
+</body>
+</html>
